@@ -1,0 +1,72 @@
+# (c) Copyright 2011-2014 Felipe Magno de Almeida
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import feature ;
+
+feature.feature ghtv-openmax : off on : composite link-incompatible propagated ;
+feature.compose <ghtv-openmax>on : <define>GHTV_USE_OPENMAX ;
+feature.feature ghtv-opengles2 : off on : composite link-incompatible propagated ;
+feature.compose <ghtv-opengles2>on : <define>GHTV_USE_OPENGLES2 ;
+feature.feature ghtv-glut : off on : composite link-incompatible propagated ;
+feature.compose <ghtv-glut>on : <define>GHTV_USE_GLUT ;
+
+obj bcm_host : config/bcm_host.cpp ;
+obj openmax : config/openmax.cpp ;
+obj opengles2 : config/opengles2.cpp ;
+obj glut : config/glut.cpp ;
+
+project linux-opengl-player
+ : requirements
+   [ check-target-builds bcm_host "raspberry-pi platform" : <define>GHTV_BCM_HOST : ]
+   [ check-target-builds openmax "Has OpenMAX" : <ghtv-openmax>on : ]
+   [ check-target-builds opengles2 "Use OpenGL ES 2.0" : <ghtv-opengles2>on : ]
+   [ check-target-builds glut "Use GLUT" : <ghtv-glut>on : ]
+ ;
+
+exe linux-opengl-player : src/main.cpp src/draw.cpp src/load_gif_linux.cpp
+ src/idle_update.cpp src/handle_events.cpp
+ src/lua_player.cpp
+ src/lua_player_init_event.cpp src/lua_player_init_canvas.cpp src/lua_player_init_sandbox.cpp
+ src/lua/canvas.cpp src/lua/timer.cpp src/lua/event.cpp src/lua/socket.cpp
+ src/sound_player.cpp
+ src/html_player.cpp
+ src/text_player.cpp
+ src/binary_file.cpp
+ src/url_join.cpp
+ /openmax-raspberrypi//openmax-raspberrypi
+ /opengl//opengl /gntl//gntl /boost//program_options /boost//filesystem
+ /libxml2//libxml2 /libpng//libpng /ghtv-opengl-library//ghtv-opengl-library
+ /libjpeg//libjpeg /libgif//libgif /boost//thread
+ /luabind//luabind /lua//lua
+ /gstreamer-1.0//gstreamer-1.0
+ /libcurl//libcurl
+ /liburiparser//liburiparser
+ /litehtml//litehtml
+ /x11//x11
+ /pangocairo//pangocairo
+ /fontconfig//fontconfig
+ /opencv-basic//opencv-basic
+ : <include>include
+   <toolset>gcc:<cxxflags>-Wno-unused-local-typedefs
+   <toolset>gcc:<cxxflags>-Wno-switch # just for now
+   <toolset>gcc:<cxxflags>-Wno-narrowing
+   <threading>multi
+   <ghtv-openmax>off:<source>src/load_png_linux.cpp
+   <ghtv-openmax>off:<source>src/load_jpg_linux.cpp
+   <ghtv-openmax>off:<source>src/load_image_linux.cpp
+ ;
+explicit linux-opengl-player ;
+
+install install : linux-opengl-player ;
